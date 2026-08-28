@@ -189,7 +189,7 @@
 </div>
 
 <script>
-const API_BASE = window.UPSELL_API_BASE || "http://localhost:8000";
+const API_BASE = window.UPSELL_API_BASE || "https://upsell-agent-cjua.onrender.com";
 
 async function apiGet(path){
   const res = await fetch(API_BASE + path, { signal: AbortSignal.timeout(20000) });
