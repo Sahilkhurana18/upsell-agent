@@ -17,6 +17,7 @@ import base64
 import hashlib
 import hmac
 import os
+import sys
 import time
 from dataclasses import dataclass
 from typing import Optional
@@ -97,7 +98,12 @@ def _request(method: str, path: str, json_body: dict | None = None,
                 raise  # don't retry 4xx errors
             if attempt < max_retries - 1:
                 delay = base_delay_seconds * (2 ** attempt)
+                print(f"[razorpay_client] {method} {path} failed (attempt {attempt+1}/{max_retries}): "
+                      f"{e!r} -- retrying in {delay:.1f}s", file=sys.stderr)
                 time.sleep(delay)
+            else:
+                print(f"[razorpay_client] {method} {path} failed on final attempt "
+                      f"({attempt+1}/{max_retries}): {e!r}", file=sys.stderr)
             continue
 
     raise RazorpayAPIError(f"Razorpay API call failed after {max_retries} attempts: {last_error}")
