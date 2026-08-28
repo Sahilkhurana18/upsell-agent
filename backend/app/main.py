@@ -144,6 +144,16 @@ async def razorpay_webhook(request: Request, db: Session = Depends(get_db)):
         order.razorpay_payment_id = payment_entity["id"]
         db.commit()
 
+        # Idempotency guard: Razorpay retries webhook delivery with backoff
+        # for up to 24 hours if a delivery isn't acknowledged cleanly, so
+        # this endpoint WILL receive duplicate deliveries for the same
+        # order in practice. Without this check, each retry would re-run
+        # the full pipeline and create a duplicate upsell offer / duplicate
+        # Payment Link -- already-processed orders are a no-op here.
+        existing_offer = db.query(UpsellOffer).filter(UpsellOffer.source_order_id == order_id).first()
+        if existing_offer is not None:
+            return {"status": "already_processed", "order_id": order_id}
+
         process_paid_order(db, order)
         return {"status": "processed"}
 
@@ -350,7 +360,8 @@ def chat(req: ChatRequest, db: Session = Depends(get_db)):
     }
     answer = narration._call_llm(
         "You are UpsellAgent, an assistant summarizing e-commerce upsell performance. "
-        "Answer ONLY using this data, 2-3 sentences, no preamble:\n"
+        "Answer ONLY using this data, 2-3 sentences, no preamble. Always write currency "
+        "as 'Rs X' (e.g. 'Rs 24,999'), never '$' or any other symbol:\n"
         f"{prompt_context}\n\nQuestion: {req.question}"
     )
     if not answer:

@@ -3,167 +3,249 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>UpsellAgent — Merchant Console</title>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<title>UpsellAgent — The Till</title>
+<link href="https://fonts.googleapis.com/css2?family=Spectral:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{
-    --ink:#0B0F14; --panel:#121820; --panel-2:#171F29; --border:#232C38;
-    --text:#E7ECF0; --text-dim:#8996A6; --text-faint:#5B6675;
-    --gold:#D4A24C; --gold-soft:rgba(212,162,76,0.13);
-    --red:#E5595E; --red-soft:rgba(229,89,94,0.13);
-    --teal:#2FD4A7; --teal-soft:rgba(47,212,167,0.13);
-    --blue:#5B9BD5; --blue-soft:rgba(91,155,213,0.13);
-    --radius:10px;
+    --ink:#14140F;
+    --ink-2:#1B1B14;
+    --page:#EDE6D2;
+    --page-dim:#9C9484;
+    --line:#33321F;
+    --gilt:#C9A227;
+    --gilt-soft:rgba(201,162,39,0.14);
+    --stamp-red:#A6402F;
+    --stamp-red-soft:rgba(166,64,47,0.15);
+    --ledger-teal:#3E8E76;
+    --ledger-teal-soft:rgba(62,142,118,0.15);
+    --blue:#6E92B8;
+    --blue-soft:rgba(110,146,184,0.15);
   }
   *{box-sizing:border-box;}
-  body{margin:0;background:var(--ink);color:var(--text);font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased;}
+  body{
+    margin:0; background:var(--ink); color:var(--page);
+    font-family:'Inter',sans-serif; -webkit-font-smoothing:antialiased;
+    background-image:
+      radial-gradient(ellipse 900px 500px at 15% -10%, rgba(201,162,39,0.06), transparent),
+      repeating-linear-gradient(0deg, rgba(255,255,255,0.012) 0px, rgba(255,255,255,0.012) 1px, transparent 1px, transparent 3px);
+  }
+  .serif{font-family:'Spectral',serif;}
   .mono{font-family:'IBM Plex Mono',monospace;}
-  .shell{max-width:1200px;margin:0 auto;padding:28px 24px 80px;}
-  .topbar{display:flex;align-items:center;justify-content:space-between;padding-bottom:22px;margin-bottom:26px;border-bottom:1px solid var(--border);}
-  .brand{display:flex;align-items:center;gap:11px;}
-  .brand-mark{width:30px;height:30px;border-radius:8px;background:linear-gradient(155deg,var(--gold),#9c7530);display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk';font-weight:700;font-size:15px;color:#100b02;}
-  .brand-name{font-family:'Space Grotesk';font-weight:600;font-size:17px;}
-  .brand-sub{color:var(--text-faint);font-size:11.5px;margin-top:1px;}
-  .status-pill{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--text-dim);padding:6px 12px;border:1px solid var(--border);border-radius:100px;background:var(--panel);}
-  .dot{width:6px;height:6px;border-radius:50%;background:var(--text-faint);}
-  .dot.live{background:var(--teal);box-shadow:0 0 0 3px var(--teal-soft);}
-  .dot.demo{background:var(--gold);box-shadow:0 0 0 3px var(--gold-soft);}
-  .cards{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:26px;}
-  @media(max-width:900px){.cards{grid-template-columns:repeat(2,1fr);}}
-  .card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:18px;}
-  .card-label{font-size:11.5px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px;}
-  .card-value{font-family:'Space Grotesk';font-weight:600;font-size:26px;}
-  .card-value.gold{color:var(--gold);} .card-value.teal{color:var(--teal);}
-  .card-sub{font-size:12px;color:var(--text-faint);margin-top:6px;}
-  .section{margin-bottom:26px;}
-  .section-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:13px;}
-  .section-title{font-family:'Space Grotesk';font-weight:600;font-size:15px;}
-  .section-title .n{color:var(--text-faint);font-weight:400;margin-left:6px;font-size:12.5px;}
-  .btn{font-family:'Inter';font-size:12.5px;font-weight:500;color:var(--ink);background:var(--gold);border:none;border-radius:7px;padding:8px 14px;cursor:pointer;}
-  .btn.ghost{background:transparent;color:var(--text-dim);border:1px solid var(--border);}
-  .btn.danger{background:var(--red);color:#1a0505;}
-  .funnel{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:22px 24px;display:flex;gap:0;overflow-x:auto;}
-  .funnel-stage{flex:1;min-width:130px;display:flex;flex-direction:column;align-items:center;padding:6px 14px;position:relative;}
-  .funnel-stage:not(:last-child)::after{content:'';position:absolute;right:-1px;top:50%;width:8px;height:8px;border-top:1.5px solid var(--text-faint);border-right:1.5px solid var(--text-faint);transform:translateY(-50%) rotate(45deg);}
-  .funnel-label{font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;text-align:center;}
-  .funnel-count{font-family:'IBM Plex Mono';font-weight:600;font-size:22px;}
-  .funnel-count.final{color:var(--teal);}
-  .table-wrap{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;}
-  table{width:100%;border-collapse:collapse;font-size:13px;}
-  thead th{text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-faint);padding:11px 16px;border-bottom:1px solid var(--border);background:var(--panel-2);}
-  tbody td{padding:11px 16px;border-bottom:1px solid var(--border);color:var(--text-dim);}
-  tbody tr:last-child td{border-bottom:none;}
-  tbody tr{cursor:pointer;}
-  tbody tr:hover{background:var(--panel-2);}
-  .badge{font-size:10.5px;font-weight:600;padding:3px 8px;border-radius:100px;display:inline-block;}
-  .badge.sent,.badge.converted{color:var(--teal);background:var(--teal-soft);}
-  .badge.blocked,.badge.expired,.badge.cancelled{color:var(--red);background:var(--red-soft);}
-  .badge.pending_approval{color:var(--blue);background:var(--blue-soft);}
-  .badge.skipped,.badge.created{color:var(--text-dim);background:rgba(137,150,166,0.12);}
-  .badge.paid{color:var(--teal);background:var(--teal-soft);}
-  .guardrail-grid{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:20px 22px;display:grid;grid-template-columns:repeat(4,1fr);gap:16px;}
-  @media(max-width:900px){.guardrail-grid{grid-template-columns:1fr 1fr;}}
-  .field label{display:block;font-size:11.5px;color:var(--text-dim);margin-bottom:6px;}
-  .field input{width:100%;background:var(--panel-2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:'IBM Plex Mono';font-size:13px;padding:8px 10px;}
-  .field input:focus{outline:none;border-color:var(--gold);}
-  .demo-panel{background:var(--panel);border:1px solid rgba(229,89,94,0.35);border-radius:var(--radius);padding:18px 20px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;}
-  .demo-panel-text{font-size:13px;color:var(--text-dim);max-width:600px;line-height:1.5;}
-  .chat-box{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px;}
-  .chat-log{max-height:220px;overflow-y:auto;margin-bottom:12px;display:flex;flex-direction:column;gap:12px;}
-  .chat-msg{font-size:13.5px;line-height:1.55;}
-  .chat-msg.user::before{content:'You  ';color:var(--text-faint);font-family:'IBM Plex Mono';font-size:11px;}
-  .chat-msg.bot{color:var(--text-dim);}
-  .chat-msg.bot::before{content:'UpsellAgent  ';color:var(--gold);font-family:'IBM Plex Mono';font-size:11px;}
+
+  .shell{max-width:1180px;margin:0 auto;padding:36px 24px 90px;}
+
+  /* ---------- header ---------- */
+  .topbar{display:flex;align-items:flex-end;justify-content:space-between;padding-bottom:20px;margin-bottom:30px;border-bottom:1px solid var(--line);}
+  .brand-eyebrow{font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--gilt);margin-bottom:6px;}
+  .brand-name{font-family:'Spectral';font-weight:600;font-size:28px;letter-spacing:-0.01em;}
+  .brand-sub{color:var(--page-dim);font-size:12.5px;margin-top:4px;}
+  .status-pill{display:flex;align-items:center;gap:7px;font-size:11.5px;color:var(--page-dim);padding:6px 12px;border:1px solid var(--line);border-radius:2px;}
+  .dot{width:6px;height:6px;border-radius:50%;background:var(--page-dim);}
+  .dot.live{background:var(--ledger-teal);box-shadow:0 0 0 3px var(--ledger-teal-soft);}
+  .dot.demo{background:var(--gilt);box-shadow:0 0 0 3px var(--gilt-soft);}
+
+  /* ---------- the till (hero) ---------- */
+  .till{
+    border:1px solid var(--line); border-radius:2px; padding:28px 30px; margin-bottom:32px;
+    background:linear-gradient(180deg, rgba(201,162,39,0.05), transparent 70%);
+    display:grid; grid-template-columns:1.4fr 1fr 1fr 1fr; gap:0;
+  }
+  @media(max-width:800px){ .till{grid-template-columns:1fr 1fr;} }
+  .till-hero{border-right:1px solid var(--line); padding-right:28px;}
+  .till-hero-label{font-size:10.5px;text-transform:uppercase;letter-spacing:0.1em;color:var(--page-dim);margin-bottom:10px;}
+  .till-hero-value{font-family:'Spectral';font-weight:700;font-size:42px;color:var(--gilt);line-height:1;}
+  .till-hero-sub{font-size:12px;color:var(--page-dim);margin-top:10px;}
+  .till-line{padding:2px 28px;display:flex;flex-direction:column;justify-content:center;}
+  .till-line:not(:last-child){border-right:1px solid var(--line);}
+  .till-line-label{font-size:10.5px;text-transform:uppercase;letter-spacing:0.08em;color:var(--page-dim);margin-bottom:8px;}
+  .till-line-value{font-family:'IBM Plex Mono';font-weight:600;font-size:22px;}
+  .till-line-value.teal{color:var(--ledger-teal);}
+  .till-line-sub{font-size:11.5px;color:var(--page-dim);margin-top:6px;}
+
+  /* ---------- section chrome ---------- */
+  .section{margin-bottom:30px;}
+  .section-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px;border-bottom:1px solid var(--line);padding-bottom:8px;}
+  .section-title{font-family:'Spectral';font-weight:600;font-size:16px;}
+  .section-title .n{color:var(--page-dim);font-weight:400;margin-left:8px;font-size:12px;font-family:'Inter';}
+  .btn{font-family:'Inter';font-size:12px;font-weight:600;color:var(--ink);background:var(--gilt);border:none;border-radius:2px;padding:8px 16px;cursor:pointer;letter-spacing:0.02em;}
+  .btn.ghost{background:transparent;color:var(--page-dim);border:1px solid var(--line);}
+  .btn.stamp{background:transparent;color:var(--stamp-red);border:1.5px solid var(--stamp-red);}
+  .btn:disabled{opacity:0.5;cursor:not-allowed;}
+
+  /* ---------- the tally (funnel) ---------- */
+  .tally{display:flex;border:1px solid var(--line);border-radius:2px;overflow-x:auto;}
+  .tally-col{flex:1;min-width:120px;padding:20px 18px;text-align:center;position:relative;}
+  .tally-col:not(:last-child){border-right:1px solid var(--line);}
+  .tally-label{font-size:10.5px;text-transform:uppercase;letter-spacing:0.06em;color:var(--page-dim);margin-bottom:10px;}
+  .tally-count{font-family:'IBM Plex Mono';font-weight:600;font-size:26px;}
+  .tally-count.final{color:var(--ledger-teal);}
+  .tally-col::after{
+    content:''; position:absolute; bottom:0; left:0; right:0; height:2px; background:var(--gilt); opacity:0.3;
+  }
+
+  /* ---------- failure-demo strip ---------- */
+  .demo-panel{
+    border:1px solid var(--stamp-red); border-radius:2px; padding:18px 22px;
+    display:flex; align-items:center; justify-content:space-between; gap:20px; flex-wrap:wrap;
+    background:repeating-linear-gradient(135deg, transparent, transparent 10px, var(--stamp-red-soft) 10px, var(--stamp-red-soft) 11px);
+  }
+  .demo-panel-text{font-size:12.5px;color:var(--page-dim);max-width:640px;line-height:1.55;}
+  .demo-panel-text b{color:var(--page);}
+
+  /* ---------- guardrail ledger fields ---------- */
+  .guardrail-grid{border:1px solid var(--line);border-radius:2px;padding:22px 26px;display:grid;grid-template-columns:repeat(4,1fr);gap:20px;}
+  @media(max-width:800px){.guardrail-grid{grid-template-columns:1fr 1fr;}}
+  .field label{display:block;font-size:11px;color:var(--page-dim);margin-bottom:7px;text-transform:uppercase;letter-spacing:0.04em;}
+  .field input{
+    width:100%;background:transparent;border:none;border-bottom:1px solid var(--line);
+    color:var(--page);font-family:'IBM Plex Mono';font-size:15px;padding:4px 0 8px;
+  }
+  .field input:focus{outline:none;border-bottom-color:var(--gilt);}
+
+  /* ---------- receipt tape (orders / offers) ---------- */
+  .receipt{border:1px solid var(--line);border-radius:2px;overflow:hidden;}
+  .receipt-row{
+    display:grid; grid-template-columns:1.2fr 1.6fr 0.9fr 0.9fr 1.6fr; gap:14px;
+    padding:13px 18px; border-bottom:1px dashed var(--line); align-items:center; cursor:pointer;
+  }
+  .receipt-row.head{
+    font-size:10px; text-transform:uppercase; letter-spacing:0.06em; color:var(--page-dim);
+    border-bottom:1px solid var(--line); cursor:default; padding:10px 18px;
+  }
+  .receipt-row:last-child{border-bottom:none;}
+  .receipt-row:not(.head):hover{background:rgba(201,162,39,0.05);}
+  .receipt-id{font-family:'IBM Plex Mono';font-size:12px;color:var(--page-dim);}
+  .receipt-amt{font-family:'IBM Plex Mono';text-align:right;}
+  .receipt-msg{font-size:12px;color:var(--page-dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
+  /* stamp-style status badge */
+  .stamp{
+    display:inline-block; font-family:'IBM Plex Mono'; font-size:10px; font-weight:600;
+    letter-spacing:0.06em; text-transform:uppercase; padding:3px 9px; border-radius:2px;
+    border:1.5px solid currentColor; transform:rotate(-2deg);
+  }
+  .stamp.sent,.stamp.converted,.stamp.paid{color:var(--ledger-teal);}
+  .stamp.blocked,.stamp.expired,.stamp.cancelled{color:var(--stamp-red);}
+  .stamp.pending_approval{color:var(--blue);}
+  .stamp.skipped,.stamp.created{color:var(--page-dim);}
+
+  /* ---------- chat ---------- */
+  .chat-box{border:1px solid var(--line);border-radius:2px;padding:20px 22px;}
+  .chat-log{max-height:220px;overflow-y:auto;margin-bottom:14px;display:flex;flex-direction:column;gap:12px;}
+  .chat-msg{font-size:13px;line-height:1.55;}
+  .chat-msg.user::before{content:'You  ';color:var(--page-dim);font-family:'IBM Plex Mono';font-size:10.5px;}
+  .chat-msg.bot{color:var(--page-dim);}
+  .chat-msg.bot::before{content:'Till  ';color:var(--gilt);font-family:'IBM Plex Mono';font-size:10.5px;}
   .chat-input-row{display:flex;gap:8px;}
-  .chat-input-row input{flex:1;background:var(--panel-2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:13.5px;padding:10px 13px;}
-  .drawer-overlay{position:fixed;inset:0;background:rgba(4,6,9,0.6);display:none;justify-content:flex-end;z-index:50;}
+  .chat-input-row input{
+    flex:1;background:transparent;border:none;border-bottom:1px solid var(--line);
+    color:var(--page);font-size:13.5px;padding:8px 2px;
+  }
+  .chat-input-row input:focus{outline:none;border-bottom-color:var(--gilt);}
+
+  /* ---------- drawer ---------- */
+  .drawer-overlay{position:fixed;inset:0;background:rgba(10,9,5,0.65);display:none;justify-content:flex-end;z-index:50;}
   .drawer-overlay.open{display:flex;}
-  .drawer{width:min(460px,92vw);background:var(--panel);border-left:1px solid var(--border);padding:24px;overflow-y:auto;}
-  .drawer-close{background:none;border:1px solid var(--border);color:var(--text-dim);width:28px;height:28px;border-radius:7px;cursor:pointer;}
-  .trace-row{border-left:2px solid var(--border);padding:2px 0 14px 16px;position:relative;margin-left:5px;}
-  .trace-row::before{content:'';position:absolute;left:-5px;top:2px;width:8px;height:8px;border-radius:50%;background:var(--text-faint);}
-  .trace-row.success::before{background:var(--teal);}
-  .trace-row.fail::before{background:var(--red);}
-  .trace-title{font-family:'IBM Plex Mono';font-size:12px;color:var(--text-faint);text-transform:uppercase;margin-bottom:4px;}
-  .trace-body{font-size:13px;color:var(--text-dim);line-height:1.55;}
-  .footer-note{margin-top:34px;padding-top:18px;border-top:1px solid var(--border);font-size:11.5px;color:var(--text-faint);line-height:1.6;}
+  .drawer{width:min(460px,92vw);background:var(--ink-2);border-left:1px solid var(--line);padding:26px;overflow-y:auto;}
+  .drawer-close{background:none;border:1px solid var(--line);color:var(--page-dim);width:28px;height:28px;border-radius:2px;cursor:pointer;}
+  .trace-row{border-left:2px solid var(--line);padding:2px 0 16px 16px;position:relative;margin-left:5px;}
+  .trace-row::before{content:'';position:absolute;left:-5px;top:2px;width:8px;height:8px;border-radius:50%;background:var(--page-dim);}
+  .trace-row.success::before{background:var(--ledger-teal);}
+  .trace-row.fail::before{background:var(--stamp-red);}
+  .trace-title{font-family:'IBM Plex Mono';font-size:11px;color:var(--page-dim);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:5px;}
+  .trace-body{font-size:13px;color:var(--page-dim);line-height:1.55;}
+
+  .footer-note{margin-top:38px;padding-top:18px;border-top:1px solid var(--line);font-size:11.5px;color:var(--page-dim);line-height:1.65;}
+
+  @media (prefers-reduced-motion: reduce){ *{transition:none !important;animation:none !important;} }
 </style>
 </head>
 <body>
 <div class="shell">
+
   <div class="topbar">
-    <div class="brand">
-      <div class="brand-mark">U</div>
-      <div><div class="brand-name">UpsellAgent</div><div class="brand-sub">Merchant Console — Real Razorpay Test Mode</div></div>
+    <div>
+      <div class="brand-eyebrow">Aster Store</div>
+      <div class="brand-name">The Till</div>
+      <div class="brand-sub">Live cross-sell ledger — real Razorpay test-mode transactions</div>
     </div>
     <div id="statusPill" class="status-pill"><span class="dot" id="statusDot"></span><span id="statusText">Connecting…</span></div>
   </div>
 
-  <div class="cards">
-    <div class="card"><div class="card-label">Paid orders</div><div class="card-value" id="cardOrders">—</div><div class="card-sub" id="cardOrdersSub">&nbsp;</div></div>
-    <div class="card"><div class="card-label">Order revenue</div><div class="card-value gold" id="cardOrderRev">—</div><div class="card-sub">&nbsp;</div></div>
-    <div class="card"><div class="card-label">Upsell revenue</div><div class="card-value teal" id="cardUpsellRev">—</div><div class="card-sub" id="cardConvRate">&nbsp;</div></div>
-    <div class="card"><div class="card-label">Offers made</div><div class="card-value" id="cardOffers">—</div><div class="card-sub" id="cardOffersSub">&nbsp;</div></div>
+  <div class="till">
+    <div class="till-hero">
+      <div class="till-hero-label">Order revenue</div>
+      <div class="till-hero-value" id="cardOrderRev">—</div>
+      <div class="till-hero-sub" id="cardOrdersSub">&nbsp;</div>
+    </div>
+    <div class="till-line">
+      <div class="till-line-label">Paid orders</div>
+      <div class="till-line-value" id="cardOrders">—</div>
+    </div>
+    <div class="till-line">
+      <div class="till-line-label">Upsell revenue</div>
+      <div class="till-line-value teal" id="cardUpsellRev">—</div>
+      <div class="till-line-sub" id="cardConvRate">&nbsp;</div>
+    </div>
+    <div class="till-line">
+      <div class="till-line-label">Offers made</div>
+      <div class="till-line-value" id="cardOffers">—</div>
+      <div class="till-line-sub" id="cardOffersSub">&nbsp;</div>
+    </div>
   </div>
 
   <div class="section">
     <div class="section-head">
-      <div class="section-title">Upsell pipeline<span class="n">order paid → candidate found → guardrail-checked → sent → converted</span></div>
+      <div class="section-title">The tally<span class="n">order paid → candidate found → guardrail-checked → sent → converted</span></div>
     </div>
-    <div class="funnel" id="funnel">
-      <div class="funnel-stage"><div class="funnel-label">Orders processed</div><div class="funnel-count" id="fnOrders">0</div></div>
-      <div class="funnel-stage"><div class="funnel-label">Candidate found</div><div class="funnel-count" id="fnCandidate">0</div></div>
-      <div class="funnel-stage"><div class="funnel-label">Guardrail passed</div><div class="funnel-count" id="fnGuardrail">0</div></div>
-      <div class="funnel-stage"><div class="funnel-label">Offer sent</div><div class="funnel-count" id="fnSent">0</div></div>
-      <div class="funnel-stage"><div class="funnel-label">Converted</div><div class="funnel-count final" id="fnConverted">0</div></div>
+    <div class="tally" id="funnel">
+      <div class="tally-col"><div class="tally-label">Orders</div><div class="tally-count" id="fnOrders">0</div></div>
+      <div class="tally-col"><div class="tally-label">Candidate found</div><div class="tally-count" id="fnCandidate">0</div></div>
+      <div class="tally-col"><div class="tally-label">Guardrail passed</div><div class="tally-count" id="fnGuardrail">0</div></div>
+      <div class="tally-col"><div class="tally-label">Sent</div><div class="tally-count" id="fnSent">0</div></div>
+      <div class="tally-col"><div class="tally-label">Converted</div><div class="tally-count final" id="fnConverted">0</div></div>
     </div>
   </div>
 
   <div class="section">
-    <div class="section-head">
-      <div class="section-title">Failure handling demo<span class="n">proves the retry+audit path, not just claims it</span></div>
-    </div>
+    <div class="section-head"><div class="section-title">Failure handling<span class="n">proves the retry path, not just claims it</span></div></div>
     <div class="demo-panel">
-      <div class="demo-panel-text">Arms the next 3 Razorpay API calls to fail with a simulated timeout. The next upsell offer will show a real retry-with-backoff sequence in the terminal, then an audited failure record here — instead of a crash.</div>
-      <button class="btn danger" id="simulateFailureBtn">Simulate API failure (next 3 calls)</button>
+      <div class="demo-panel-text"><b>Arms the next 3 Razorpay calls to fail</b> with a simulated timeout. Make a purchase right after — watch the retry-with-backoff sequence in the server log, then a stamped <span class="stamp blocked" style="transform:none;padding:1px 5px;">blocked</span> offer here with an audited reason, instead of a crash.</div>
+      <button class="btn stamp" id="simulateFailureBtn">Simulate API failure</button>
     </div>
   </div>
 
   <div class="section">
     <div class="section-head">
-      <div class="section-title">Guardrail engine<span class="n">edit and a new purchase will reflect the new limits</span></div>
+      <div class="section-title">House rules<span class="n">edit, save, and the next order reflects the new limits</span></div>
       <button class="btn ghost" id="saveGuardrailBtn">Save & apply</button>
     </div>
     <div class="guardrail-grid">
-      <div class="field"><label>Max upsell price ratio (0-1)</label><input type="number" step="0.05" id="gRatio" /></div>
-      <div class="field"><label>Max offers / customer / day</label><input type="number" id="gOfferLimit" /></div>
-      <div class="field"><label>Min order value (paise)</label><input type="number" id="gMinOrder" /></div>
-      <div class="field"><label>Manual approval above (paise)</label><input type="number" id="gApprovalThreshold" /></div>
+      <div class="field"><label>Max upsell / order value</label><input type="number" step="0.05" id="gRatio" /></div>
+      <div class="field"><label>Offers / customer / day</label><input type="number" id="gOfferLimit" /></div>
+      <div class="field"><label>Min order (paise)</label><input type="number" id="gMinOrder" /></div>
+      <div class="field"><label>Approval above (paise)</label><input type="number" id="gApprovalThreshold" /></div>
     </div>
   </div>
 
   <div class="section">
-    <div class="section-head"><div class="section-title">Upsell offers<span class="n" id="offerCount"></span></div></div>
-    <div class="table-wrap">
-      <table>
-        <thead><tr><th>Order</th><th>Offered product</th><th>Price</th><th>Status</th><th>Message</th></tr></thead>
-        <tbody id="offerTableBody"></tbody>
-      </table>
+    <div class="section-head"><div class="section-title">Offers ledger<span class="n" id="offerCount"></span></div></div>
+    <div class="receipt">
+      <div class="receipt-row head"><div>Order</div><div>Offered</div><div style="text-align:right;">Price</div><div>Status</div><div>Message</div></div>
+      <div id="offerTableBody"></div>
     </div>
   </div>
 
   <div class="section">
-    <div class="section-head"><div class="section-title">Orders<span class="n" id="orderCount"></span></div></div>
-    <div class="table-wrap">
-      <table>
-        <thead><tr><th>Order ID</th><th>Product</th><th>Amount</th><th>Status</th><th>Customer</th></tr></thead>
-        <tbody id="orderTableBody"></tbody>
-      </table>
+    <div class="section-head"><div class="section-title">Orders ledger<span class="n" id="orderCount"></span></div></div>
+    <div class="receipt">
+      <div class="receipt-row head"><div>Order</div><div>Product</div><div style="text-align:right;">Amount</div><div>Status</div><div>Customer</div></div>
+      <div id="orderTableBody"></div>
     </div>
   </div>
 
   <div class="section">
-    <div class="section-head"><div class="section-title">Ask UpsellAgent</div></div>
+    <div class="section-head"><div class="section-title">Ask the till</div></div>
     <div class="chat-box">
       <div class="chat-log" id="chatLog"><div class="chat-msg bot">Ask things like "how much upsell revenue have we made?"</div></div>
       <div class="chat-input-row">
@@ -180,8 +262,8 @@
 
 <div class="drawer-overlay" id="drawerOverlay">
   <div class="drawer">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
-      <div><div class="section-title" id="drawerOrderId">—</div><div class="card-sub" style="margin-top:4px;">Full audit trail</div></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+      <div><div class="section-title serif" id="drawerOrderId">—</div><div class="till-hero-sub" style="margin-top:4px;">Full audit trail</div></div>
       <button class="drawer-close" id="drawerCloseBtn">✕</button>
     </div>
     <div id="drawerContent"></div>
@@ -243,15 +325,15 @@ function renderGuardrail(g){
 function renderOffers(offers){
   document.getElementById("offerCount").textContent = offers.length + " shown";
   document.getElementById("offerTableBody").innerHTML = offers.map(o => `
-    <tr data-order="${o.source_order_id}">
-      <td class="mono">${o.source_order_id}</td>
-      <td>${o.offered_product_name}</td>
-      <td class="mono">${fmtMoney(o.offer_price_paise)}</td>
-      <td><span class="badge ${o.status}">${o.status.replace(/_/g," ")}</span></td>
-      <td style="max-width:280px;">${o.message_text || "—"}</td>
-    </tr>
+    <div class="receipt-row" data-order="${o.source_order_id}">
+      <div class="receipt-id">${o.source_order_id}</div>
+      <div>${o.offered_product_name}</div>
+      <div class="receipt-amt">${fmtMoney(o.offer_price_paise)}</div>
+      <div><span class="stamp ${o.status}">${o.status.replace(/_/g," ")}</span></div>
+      <div class="receipt-msg">${o.message_text || "—"}</div>
+    </div>
   `).join("");
-  document.querySelectorAll("#offerTableBody tr").forEach(row => {
+  document.querySelectorAll("#offerTableBody .receipt-row").forEach(row => {
     row.addEventListener("click", () => openDrawer(row.dataset.order));
   });
 }
@@ -259,22 +341,22 @@ function renderOffers(offers){
 function renderOrders(orders){
   document.getElementById("orderCount").textContent = orders.length + " shown";
   document.getElementById("orderTableBody").innerHTML = orders.map(o => `
-    <tr data-order="${o.order_id}">
-      <td class="mono">${o.order_id}</td>
-      <td>${o.product_name}</td>
-      <td class="mono">${fmtMoney(o.amount_paise)}</td>
-      <td><span class="badge ${o.status}">${o.status}</span></td>
-      <td>${o.customer_name || "—"}</td>
-    </tr>
+    <div class="receipt-row" data-order="${o.order_id}">
+      <div class="receipt-id">${o.order_id}</div>
+      <div>${o.product_name}</div>
+      <div class="receipt-amt">${fmtMoney(o.amount_paise)}</div>
+      <div><span class="stamp ${o.status}">${o.status}</span></div>
+      <div class="receipt-msg">${o.customer_name || "—"}</div>
+    </div>
   `).join("");
-  document.querySelectorAll("#orderTableBody tr").forEach(row => {
+  document.querySelectorAll("#orderTableBody .receipt-row").forEach(row => {
     row.addEventListener("click", () => openDrawer(row.dataset.order));
   });
 }
 
 async function openDrawer(orderId){
   document.getElementById("drawerOrderId").textContent = orderId;
-  document.getElementById("drawerContent").innerHTML = '<div class="card-sub">Loading trail…</div>';
+  document.getElementById("drawerContent").innerHTML = '<div class="till-hero-sub">Loading trail…</div>';
   document.getElementById("drawerOverlay").classList.add("open");
   try{
     const entries = await apiGet("/audit/" + orderId);
@@ -285,7 +367,7 @@ async function openDrawer(orderId){
       </div>
     `).join("");
   }catch(e){
-    document.getElementById("drawerContent").innerHTML = '<div class="card-sub">No audit trail found for this order yet.</div>';
+    document.getElementById("drawerContent").innerHTML = '<div class="till-hero-sub">No audit trail found for this order yet.</div>';
   }
 }
 document.getElementById("drawerCloseBtn").addEventListener("click", ()=> document.getElementById("drawerOverlay").classList.remove("open"));
