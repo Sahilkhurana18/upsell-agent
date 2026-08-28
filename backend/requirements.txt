@@ -1,0 +1,11 @@
+fastapi==0.115.0
+uvicorn[standard]==0.30.6
+sqlalchemy==2.0.35
+pydantic==2.9.2
+python-dotenv==1.0.1
+requests==2.32.3
+
+# optional: only needed if you set GEMINI_API_KEY for LLM narration.
+# Without it, narration.py automatically falls back to template-based
+# text -- the app still works fully, just without live LLM copy.
+google-genai

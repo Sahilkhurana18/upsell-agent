@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>UpsellAgent — Merchant Console</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0B0F14; --panel:#121820; --panel-2:#171F29; --border:#232C38;
+    --text:#E7ECF0; --text-dim:#8996A6; --text-faint:#5B6675;
+    --gold:#D4A24C; --gold-soft:rgba(212,162,76,0.13);
+    --red:#E5595E; --red-soft:rgba(229,89,94,0.13);
+    --teal:#2FD4A7; --teal-soft:rgba(47,212,167,0.13);
+    --blue:#5B9BD5; --blue-soft:rgba(91,155,213,0.13);
+    --radius:10px;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--ink);color:var(--text);font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased;}
+  .mono{font-family:'IBM Plex Mono',monospace;}
+  .shell{max-width:1200px;margin:0 auto;padding:28px 24px 80px;}
+  .topbar{display:flex;align-items:center;justify-content:space-between;padding-bottom:22px;margin-bottom:26px;border-bottom:1px solid var(--border);}
+  .brand{display:flex;align-items:center;gap:11px;}
+  .brand-mark{width:30px;height:30px;border-radius:8px;background:linear-gradient(155deg,var(--gold),#9c7530);display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk';font-weight:700;font-size:15px;color:#100b02;}
+  .brand-name{font-family:'Space Grotesk';font-weight:600;font-size:17px;}
+  .brand-sub{color:var(--text-faint);font-size:11.5px;margin-top:1px;}
+  .status-pill{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--text-dim);padding:6px 12px;border:1px solid var(--border);border-radius:100px;background:var(--panel);}
+  .dot{width:6px;height:6px;border-radius:50%;background:var(--text-faint);}
+  .dot.live{background:var(--teal);box-shadow:0 0 0 3px var(--teal-soft);}
+  .dot.demo{background:var(--gold);box-shadow:0 0 0 3px var(--gold-soft);}
+  .cards{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:26px;}
+  @media(max-width:900px){.cards{grid-template-columns:repeat(2,1fr);}}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:18px;}
+  .card-label{font-size:11.5px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px;}
+  .card-value{font-family:'Space Grotesk';font-weight:600;font-size:26px;}
+  .card-value.gold{color:var(--gold);} .card-value.teal{color:var(--teal);}
+  .card-sub{font-size:12px;color:var(--text-faint);margin-top:6px;}
+  .section{margin-bottom:26px;}
+  .section-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:13px;}
+  .section-title{font-family:'Space Grotesk';font-weight:600;font-size:15px;}
+  .section-title .n{color:var(--text-faint);font-weight:400;margin-left:6px;font-size:12.5px;}
+  .btn{font-family:'Inter';font-size:12.5px;font-weight:500;color:var(--ink);background:var(--gold);border:none;border-radius:7px;padding:8px 14px;cursor:pointer;}
+  .btn.ghost{background:transparent;color:var(--text-dim);border:1px solid var(--border);}
+  .btn.danger{background:var(--red);color:#1a0505;}
+  .funnel{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:22px 24px;display:flex;gap:0;overflow-x:auto;}
+  .funnel-stage{flex:1;min-width:130px;display:flex;flex-direction:column;align-items:center;padding:6px 14px;position:relative;}
+  .funnel-stage:not(:last-child)::after{content:'';position:absolute;right:-1px;top:50%;width:8px;height:8px;border-top:1.5px solid var(--text-faint);border-right:1.5px solid var(--text-faint);transform:translateY(-50%) rotate(45deg);}
+  .funnel-label{font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;text-align:center;}
+  .funnel-count{font-family:'IBM Plex Mono';font-weight:600;font-size:22px;}
+  .funnel-count.final{color:var(--teal);}
+  .table-wrap{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;}
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  thead th{text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-faint);padding:11px 16px;border-bottom:1px solid var(--border);background:var(--panel-2);}
+  tbody td{padding:11px 16px;border-bottom:1px solid var(--border);color:var(--text-dim);}
+  tbody tr:last-child td{border-bottom:none;}
+  tbody tr{cursor:pointer;}
+  tbody tr:hover{background:var(--panel-2);}
+  .badge{font-size:10.5px;font-weight:600;padding:3px 8px;border-radius:100px;display:inline-block;}
+  .badge.sent,.badge.converted{color:var(--teal);background:var(--teal-soft);}
+  .badge.blocked,.badge.expired,.badge.cancelled{color:var(--red);background:var(--red-soft);}
+  .badge.pending_approval{color:var(--blue);background:var(--blue-soft);}
+  .badge.skipped,.badge.created{color:var(--text-dim);background:rgba(137,150,166,0.12);}
+  .badge.paid{color:var(--teal);background:var(--teal-soft);}
+  .guardrail-grid{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:20px 22px;display:grid;grid-template-columns:repeat(4,1fr);gap:16px;}
+  @media(max-width:900px){.guardrail-grid{grid-template-columns:1fr 1fr;}}
+  .field label{display:block;font-size:11.5px;color:var(--text-dim);margin-bottom:6px;}
+  .field input{width:100%;background:var(--panel-2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:'IBM Plex Mono';font-size:13px;padding:8px 10px;}
+  .field input:focus{outline:none;border-color:var(--gold);}
+  .demo-panel{background:var(--panel);border:1px solid rgba(229,89,94,0.35);border-radius:var(--radius);padding:18px 20px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;}
+  .demo-panel-text{font-size:13px;color:var(--text-dim);max-width:600px;line-height:1.5;}
+  .chat-box{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px;}
+  .chat-log{max-height:220px;overflow-y:auto;margin-bottom:12px;display:flex;flex-direction:column;gap:12px;}
+  .chat-msg{font-size:13.5px;line-height:1.55;}
+  .chat-msg.user::before{content:'You  ';color:var(--text-faint);font-family:'IBM Plex Mono';font-size:11px;}
+  .chat-msg.bot{color:var(--text-dim);}
+  .chat-msg.bot::before{content:'UpsellAgent  ';color:var(--gold);font-family:'IBM Plex Mono';font-size:11px;}
+  .chat-input-row{display:flex;gap:8px;}
+  .chat-input-row input{flex:1;background:var(--panel-2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:13.5px;padding:10px 13px;}
+  .drawer-overlay{position:fixed;inset:0;background:rgba(4,6,9,0.6);display:none;justify-content:flex-end;z-index:50;}
+  .drawer-overlay.open{display:flex;}
+  .drawer{width:min(460px,92vw);background:var(--panel);border-left:1px solid var(--border);padding:24px;overflow-y:auto;}
+  .drawer-close{background:none;border:1px solid var(--border);color:var(--text-dim);width:28px;height:28px;border-radius:7px;cursor:pointer;}
+  .trace-row{border-left:2px solid var(--border);padding:2px 0 14px 16px;position:relative;margin-left:5px;}
+  .trace-row::before{content:'';position:absolute;left:-5px;top:2px;width:8px;height:8px;border-radius:50%;background:var(--text-faint);}
+  .trace-row.success::before{background:var(--teal);}
+  .trace-row.fail::before{background:var(--red);}
+  .trace-title{font-family:'IBM Plex Mono';font-size:12px;color:var(--text-faint);text-transform:uppercase;margin-bottom:4px;}
+  .trace-body{font-size:13px;color:var(--text-dim);line-height:1.55;}
+  .footer-note{margin-top:34px;padding-top:18px;border-top:1px solid var(--border);font-size:11.5px;color:var(--text-faint);line-height:1.6;}
+</style>
+</head>
+<body>
+<div class="shell">
+  <div class="topbar">
+    <div class="brand">
+      <div class="brand-mark">U</div>
+      <div><div class="brand-name">UpsellAgent</div><div class="brand-sub">Merchant Console — Real Razorpay Test Mode</div></div>
+    </div>
+    <div id="statusPill" class="status-pill"><span class="dot" id="statusDot"></span><span id="statusText">Connecting…</span></div>
+  </div>
+
+  <div class="cards">
+    <div class="card"><div class="card-label">Paid orders</div><div class="card-value" id="cardOrders">—</div><div class="card-sub" id="cardOrdersSub">&nbsp;</div></div>
+    <div class="card"><div class="card-label">Order revenue</div><div class="card-value gold" id="cardOrderRev">—</div><div class="card-sub">&nbsp;</div></div>
+    <div class="card"><div class="card-label">Upsell revenue</div><div class="card-value teal" id="cardUpsellRev">—</div><div class="card-sub" id="cardConvRate">&nbsp;</div></div>
+    <div class="card"><div class="card-label">Offers made</div><div class="card-value" id="cardOffers">—</div><div class="card-sub" id="cardOffersSub">&nbsp;</div></div>
+  </div>
+
+  <div class="section">
+    <div class="section-head">
+      <div class="section-title">Upsell pipeline<span class="n">order paid → candidate found → guardrail-checked → sent → converted</span></div>
+    </div>
+    <div class="funnel" id="funnel">
+      <div class="funnel-stage"><div class="funnel-label">Orders processed</div><div class="funnel-count" id="fnOrders">0</div></div>
+      <div class="funnel-stage"><div class="funnel-label">Candidate found</div><div class="funnel-count" id="fnCandidate">0</div></div>
+      <div class="funnel-stage"><div class="funnel-label">Guardrail passed</div><div class="funnel-count" id="fnGuardrail">0</div></div>
+      <div class="funnel-stage"><div class="funnel-label">Offer sent</div><div class="funnel-count" id="fnSent">0</div></div>
+      <div class="funnel-stage"><div class="funnel-label">Converted</div><div class="funnel-count final" id="fnConverted">0</div></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-head">
+      <div class="section-title">Failure handling demo<span class="n">proves the retry+audit path, not just claims it</span></div>
+    </div>
+    <div class="demo-panel">
+      <div class="demo-panel-text">Arms the next 3 Razorpay API calls to fail with a simulated timeout. The next upsell offer will show a real retry-with-backoff sequence in the terminal, then an audited failure record here — instead of a crash.</div>
+      <button class="btn danger" id="simulateFailureBtn">Simulate API failure (next 3 calls)</button>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-head">
+      <div class="section-title">Guardrail engine<span class="n">edit and a new purchase will reflect the new limits</span></div>
+      <button class="btn ghost" id="saveGuardrailBtn">Save & apply</button>
+    </div>
+    <div class="guardrail-grid">
+      <div class="field"><label>Max upsell price ratio (0-1)</label><input type="number" step="0.05" id="gRatio" /></div>
+      <div class="field"><label>Max offers / customer / day</label><input type="number" id="gOfferLimit" /></div>
+      <div class="field"><label>Min order value (paise)</label><input type="number" id="gMinOrder" /></div>
+      <div class="field"><label>Manual approval above (paise)</label><input type="number" id="gApprovalThreshold" /></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-head"><div class="section-title">Upsell offers<span class="n" id="offerCount"></span></div></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Order</th><th>Offered product</th><th>Price</th><th>Status</th><th>Message</th></tr></thead>
+        <tbody id="offerTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-head"><div class="section-title">Orders<span class="n" id="orderCount"></span></div></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Order ID</th><th>Product</th><th>Amount</th><th>Status</th><th>Customer</th></tr></thead>
+        <tbody id="orderTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-head"><div class="section-title">Ask UpsellAgent</div></div>
+    <div class="chat-box">
+      <div class="chat-log" id="chatLog"><div class="chat-msg bot">Ask things like "how much upsell revenue have we made?"</div></div>
+      <div class="chat-input-row">
+        <input type="text" id="chatInput" placeholder="How much upsell revenue have we made?" />
+        <button class="btn" id="chatSendBtn">Ask</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-note">
+    Every purchase here is a real Razorpay TEST MODE transaction — no real money moves, but the Orders, Payment Links, and webhook calls are genuine API calls, not simulated data. The LLM only writes offer copy and audit explanations; it never chooses the upsell product or price — that's a fixed compatibility map and guardrail engine.
+  </div>
+</div>
+
+<div class="drawer-overlay" id="drawerOverlay">
+  <div class="drawer">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+      <div><div class="section-title" id="drawerOrderId">—</div><div class="card-sub" style="margin-top:4px;">Full audit trail</div></div>
+      <button class="drawer-close" id="drawerCloseBtn">✕</button>
+    </div>
+    <div id="drawerContent"></div>
+  </div>
+</div>
+
+<script>
+const API_BASE = window.UPSELL_API_BASE || "http://localhost:8000";
+
+async function apiGet(path){
+  const res = await fetch(API_BASE + path, { signal: AbortSignal.timeout(20000) });
+  if(!res.ok) throw new Error("bad response " + res.status);
+  return res.json();
+}
+async function apiPost(path, body){
+  const res = await fetch(API_BASE + path, {
+    method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(body||{}),
+    signal: AbortSignal.timeout(20000)
+  });
+  if(!res.ok) throw new Error("bad response " + res.status);
+  return res.json();
+}
+async function apiPut(path, body){
+  const res = await fetch(API_BASE + path, {
+    method:"PUT", headers:{"Content-Type":"application/json"}, body: JSON.stringify(body||{}),
+    signal: AbortSignal.timeout(20000)
+  });
+  if(!res.ok) throw new Error("bad response " + res.status);
+  return res.json();
+}
+
+function fmtMoney(paise){ return "Rs " + Math.round(paise/100).toLocaleString("en-IN"); }
+function fmtPct(n){ return (n*100).toFixed(1) + "%"; }
+
+function renderSummary(s){
+  document.getElementById("cardOrders").textContent = s.total_paid_orders.toLocaleString("en-IN");
+  document.getElementById("cardOrderRev").textContent = fmtMoney(s.total_order_revenue_paise);
+  document.getElementById("cardUpsellRev").textContent = fmtMoney(s.total_upsell_revenue_paise);
+  document.getElementById("cardConvRate").textContent = fmtPct(s.conversion_rate) + " conversion on sent offers";
+  document.getElementById("cardOffers").textContent = s.total_offers_made.toLocaleString("en-IN");
+  document.getElementById("cardOffersSub").textContent = s.total_offers_sent + " sent";
+}
+
+function renderFunnel(f){
+  document.getElementById("fnOrders").textContent = f.orders_processed;
+  document.getElementById("fnCandidate").textContent = f.candidate_found;
+  document.getElementById("fnGuardrail").textContent = f.guardrail_passed;
+  document.getElementById("fnSent").textContent = f.sent;
+  document.getElementById("fnConverted").textContent = f.converted;
+}
+
+function renderGuardrail(g){
+  document.getElementById("gRatio").value = g.max_upsell_price_ratio;
+  document.getElementById("gOfferLimit").value = g.max_offers_per_customer_per_day;
+  document.getElementById("gMinOrder").value = g.min_order_value_paise;
+  document.getElementById("gApprovalThreshold").value = g.require_manual_approval_above_paise;
+}
+
+function renderOffers(offers){
+  document.getElementById("offerCount").textContent = offers.length + " shown";
+  document.getElementById("offerTableBody").innerHTML = offers.map(o => `
+    <tr data-order="${o.source_order_id}">
+      <td class="mono">${o.source_order_id}</td>
+      <td>${o.offered_product_name}</td>
+      <td class="mono">${fmtMoney(o.offer_price_paise)}</td>
+      <td><span class="badge ${o.status}">${o.status.replace(/_/g," ")}</span></td>
+      <td style="max-width:280px;">${o.message_text || "—"}</td>
+    </tr>
+  `).join("");
+  document.querySelectorAll("#offerTableBody tr").forEach(row => {
+    row.addEventListener("click", () => openDrawer(row.dataset.order));
+  });
+}
+
+function renderOrders(orders){
+  document.getElementById("orderCount").textContent = orders.length + " shown";
+  document.getElementById("orderTableBody").innerHTML = orders.map(o => `
+    <tr data-order="${o.order_id}">
+      <td class="mono">${o.order_id}</td>
+      <td>${o.product_name}</td>
+      <td class="mono">${fmtMoney(o.amount_paise)}</td>
+      <td><span class="badge ${o.status}">${o.status}</span></td>
+      <td>${o.customer_name || "—"}</td>
+    </tr>
+  `).join("");
+  document.querySelectorAll("#orderTableBody tr").forEach(row => {
+    row.addEventListener("click", () => openDrawer(row.dataset.order));
+  });
+}
+
+async function openDrawer(orderId){
+  document.getElementById("drawerOrderId").textContent = orderId;
+  document.getElementById("drawerContent").innerHTML = '<div class="card-sub">Loading trail…</div>';
+  document.getElementById("drawerOverlay").classList.add("open");
+  try{
+    const entries = await apiGet("/audit/" + orderId);
+    document.getElementById("drawerContent").innerHTML = entries.map(e => `
+      <div class="trace-row ${e.success ? 'success' : 'fail'}">
+        <div class="trace-title">${e.stage.replace(/_/g," ")}</div>
+        <div class="trace-body">${e.detail}</div>
+      </div>
+    `).join("");
+  }catch(e){
+    document.getElementById("drawerContent").innerHTML = '<div class="card-sub">No audit trail found for this order yet.</div>';
+  }
+}
+document.getElementById("drawerCloseBtn").addEventListener("click", ()=> document.getElementById("drawerOverlay").classList.remove("open"));
+document.getElementById("drawerOverlay").addEventListener("click", (ev)=>{ if(ev.target.id==="drawerOverlay") ev.currentTarget.classList.remove("open"); });
+
+document.getElementById("simulateFailureBtn").addEventListener("click", async () => {
+  const btn = document.getElementById("simulateFailureBtn");
+  btn.disabled = true; btn.textContent = "Arming...";
+  try{
+    await apiPost("/demo/simulate-failure", {count: 3});
+    btn.textContent = "Armed — next purchase will show the failure path";
+  }catch(e){
+    btn.textContent = "Failed to arm (backend not connected?)";
+  }
+  setTimeout(()=>{ btn.disabled=false; btn.textContent = "Simulate API failure (next 3 calls)"; }, 3000);
+});
+
+document.getElementById("saveGuardrailBtn").addEventListener("click", async () => {
+  const payload = {
+    max_upsell_price_ratio: parseFloat(document.getElementById("gRatio").value),
+    max_offers_per_customer_per_day: parseInt(document.getElementById("gOfferLimit").value),
+    min_order_value_paise: parseInt(document.getElementById("gMinOrder").value),
+    require_manual_approval_above_paise: parseInt(document.getElementById("gApprovalThreshold").value),
+  };
+  const btn = document.getElementById("saveGuardrailBtn");
+  btn.disabled = true; btn.textContent = "Saving…";
+  try{
+    await apiPut("/guardrail-config", payload);
+    btn.textContent = "Saved ✓";
+  }catch(e){
+    btn.textContent = "Failed to save";
+  }
+  setTimeout(()=>{ btn.textContent = "Save & apply"; btn.disabled=false; }, 1400);
+});
+
+document.getElementById("chatSendBtn").addEventListener("click", sendChat);
+document.getElementById("chatInput").addEventListener("keydown", (e)=>{ if(e.key==="Enter") sendChat(); });
+async function sendChat(){
+  const input = document.getElementById("chatInput");
+  const q = input.value.trim();
+  if(!q) return;
+  const log = document.getElementById("chatLog");
+  log.insertAdjacentHTML("beforeend", `<div class="chat-msg user">${q}</div>`);
+  input.value = "";
+  try{
+    const res = await apiPost("/chat", {question:q});
+    log.insertAdjacentHTML("beforeend", `<div class="chat-msg bot">${res.answer}</div>`);
+  }catch(e){
+    log.insertAdjacentHTML("beforeend", `<div class="chat-msg bot">(backend not reachable right now)</div>`);
+  }
+  log.scrollTop = log.scrollHeight;
+}
+
+async function loadAll(){
+  try{
+    const [summary, funnel, guardrail, offers, orders] = await Promise.all([
+      apiGet("/summary"), apiGet("/pipeline/funnel"), apiGet("/guardrail-config"),
+      apiGet("/offers?limit=100"), apiGet("/orders?limit=100")
+    ]);
+    document.getElementById("statusDot").className = "dot live";
+    document.getElementById("statusText").textContent = "Connected";
+    renderSummary(summary);
+    renderFunnel(funnel);
+    renderGuardrail(guardrail);
+    renderOffers(offers);
+    renderOrders(orders);
+  }catch(e){
+    document.getElementById("statusDot").className = "dot demo";
+    document.getElementById("statusText").textContent = "Backend not connected";
+  }
+}
+loadAll();
+setInterval(loadAll, 15000); // auto-refresh so new webhook-triggered orders show up without a manual reload
+</script>
+</body>
+</html>
