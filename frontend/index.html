@@ -108,6 +108,7 @@
     display:grid; grid-template-columns:1.2fr 1.6fr 0.9fr 0.9fr 1.6fr; gap:14px;
     padding:13px 18px; border-bottom:1px dashed var(--line); align-items:center; cursor:pointer;
   }
+  .receipt-row.offers{ grid-template-columns:1.1fr 1.3fr 0.7fr 0.8fr 1.3fr 0.9fr; }
   .receipt-row.head{
     font-size:10px; text-transform:uppercase; letter-spacing:0.06em; color:var(--page-dim);
     border-bottom:1px solid var(--line); cursor:default; padding:10px 18px;
@@ -117,6 +118,8 @@
   .receipt-id{font-family:'IBM Plex Mono';font-size:12px;color:var(--page-dim);}
   .receipt-amt{font-family:'IBM Plex Mono';text-align:right;}
   .receipt-msg{font-size:12px;color:var(--page-dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .offer-link{color:var(--gilt);font-size:11.5px;text-decoration:none;font-family:'IBM Plex Mono';}
+  .offer-link:hover{text-decoration:underline;}
 
   /* stamp-style status badge */
   .stamp{
@@ -231,7 +234,7 @@
   <div class="section">
     <div class="section-head"><div class="section-title">Offers ledger<span class="n" id="offerCount"></span></div></div>
     <div class="receipt">
-      <div class="receipt-row head"><div>Order</div><div>Offered</div><div style="text-align:right;">Price</div><div>Status</div><div>Message</div></div>
+      <div class="receipt-row offers head"><div>Order</div><div>Offered</div><div style="text-align:right;">Price</div><div>Status</div><div>Message</div><div>Link</div></div>
       <div id="offerTableBody"></div>
     </div>
   </div>
@@ -325,12 +328,13 @@ function renderGuardrail(g){
 function renderOffers(offers){
   document.getElementById("offerCount").textContent = offers.length + " shown";
   document.getElementById("offerTableBody").innerHTML = offers.map(o => `
-    <div class="receipt-row" data-order="${o.source_order_id}">
+    <div class="receipt-row offers" data-order="${o.source_order_id}">
       <div class="receipt-id">${o.source_order_id}</div>
       <div>${o.offered_product_name}</div>
       <div class="receipt-amt">${fmtMoney(o.offer_price_paise)}</div>
       <div><span class="stamp ${o.status}">${o.status.replace(/_/g," ")}</span></div>
       <div class="receipt-msg">${o.message_text || "—"}</div>
+      <div>${o.payment_link_url ? `<a href="${o.payment_link_url}" target="_blank" rel="noopener" class="offer-link" onclick="event.stopPropagation()">Open →</a>` : "—"}</div>
     </div>
   `).join("");
   document.querySelectorAll("#offerTableBody .receipt-row").forEach(row => {

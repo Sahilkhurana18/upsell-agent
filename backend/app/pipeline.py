@@ -69,7 +69,7 @@ def process_paid_order(db: Session, order: Order) -> UpsellOffer:
          f"Order {order.order_id} confirmed paid: {order.product_name}, "
          f"Rs {order.amount_paise/100:.2f}")
 
-    candidate = catalog.find_upsell_candidate(order.product_id)
+    candidate = catalog.find_upsell_candidate(order.product_id, variation_seed=order.order_id)
     if candidate is None:
         _log(db, order.order_id, "candidate_found",
              f"No compatible upsell product found for '{order.product_id}'.", success=True)

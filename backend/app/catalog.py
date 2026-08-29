@@ -43,6 +43,8 @@ CATALOG: dict[str, Product] = {
                              "Compact wireless mouse, USB-C receiver."),
     "watch-band": Product("watch-band", "Extra Watch Band", "watch_accessory", 39900,
                            "Silicone replacement band, 3 colors."),
+    "watch-charger": Product("watch-charger", "Magnetic Watch Charger", "watch_accessory", 49900,
+                              "Magnetic charging dock for Aster Watch Fit."),
 }
 
 # category -> list of complementary categories, ordered by priority.
@@ -59,21 +61,35 @@ def get_product(product_id: str) -> Product | None:
     return CATALOG.get(product_id)
 
 
-def find_upsell_candidate(purchased_product_id: str) -> Product | None:
+def find_upsell_candidate(purchased_product_id: str, variation_seed: str | None = None) -> Product | None:
     """
-    Returns the single best upsell candidate for a purchased product,
-    or None if no compatible product exists. Purely deterministic
-    lookup -- no model involved.
+    Returns an upsell candidate for a purchased product, or None if no
+    compatible product exists. Still fully deterministic and auditable --
+    no LLM or randomness involved -- but when a category has more than
+    one compatible product (e.g. phone case AND charger), the choice
+    varies per `variation_seed` (typically the order_id) via a stable
+    hash, rather than always returning the same first match. The same
+    seed always reproduces the same result, which keeps the audit trail
+    reproducible, while different customers see some variety across the
+    guardrail-approved candidate set.
     """
+    import hashlib
+
     purchased = CATALOG.get(purchased_product_id)
     if purchased is None:
         return None
 
     compatible_categories = COMPATIBILITY_MAP.get(purchased.category, [])
     for category in compatible_categories:
-        for product in CATALOG.values():
-            if product.category == category:
-                return product
+        candidates = [p for p in CATALOG.values() if p.category == category]
+        if not candidates:
+            continue
+        if len(candidates) == 1 or not variation_seed:
+            return candidates[0]
+        # stable per-seed selection, not random -- same order_id always
+        # yields the same candidate, reproducible for the audit trail
+        index = int(hashlib.md5(variation_seed.encode()).hexdigest(), 16) % len(candidates)
+        return candidates[index]
     return None
 
 
